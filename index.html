@@ -234,17 +234,8 @@
             border-color: var(--accent-primary);
         }
 
-        .file-input-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
         .file-input {
-            position: absolute;
-            opacity: 0;
-            width: 100%;
-            height: 100%;
-            cursor: pointer;
+            display: none;
         }
 
         .progress-bar {
@@ -359,12 +350,10 @@
         </header>
 
         <div class="controls">
-            <div class="file-input-wrapper">
-                <button class="btn btn-outline">
-                    📁 Import CSV
-                </button>
-                <input type="file" class="file-input" id="importFile" accept=".csv">
-            </div>
+            <button class="btn btn-outline" onclick="triggerImport()">
+                📁 Import CSV
+            </button>
+            <input type="file" class="file-input" id="importFile" accept=".csv">
             <button class="btn btn-secondary" onclick="exportToPDF()">📄 Export PDF</button>
             <button class="btn btn-primary" onclick="exportToCSV()">📊 Export CSV</button>
             <button class="btn btn-outline" onclick="clearForm()">🗑️ Clear All</button>
@@ -703,6 +692,11 @@
         // Initialize form date with current date
         document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
 
+        // Trigger file import
+        function triggerImport() {
+            document.getElementById('importFile').click();
+        }
+
         // Auto-save functionality
         function autoSave() {
             const formData = collectFormData();
@@ -799,9 +793,9 @@
                         .value { margin-left: 10px; }
                         .checkbox-yes { color: #4dfe53; font-weight: bold; }
                         .checkbox-no { color: #999; }
-                       @media print {
-                           body { margin: 20px; }
-                           .no-print { display: none; }
+                        @media print {
+                            body { margin: 20px; }
+                            .no-print { display: none; }
                        }
                    </style>
                </head>
@@ -866,7 +860,7 @@
            URL.revokeObjectURL(url);
        }
 
-       // Import CSV file
+       // Import CSV file - Fixed implementation
        document.getElementById('importFile').addEventListener('change', function(e) {
            const file = e.target.files[0];
            if (!file) return;
@@ -883,9 +877,13 @@
                    const data = parseCSV(csv);
                    loadFormData(data);
                    showNotification('Profile imported successfully!');
+                   updateProgress(); // Update progress after import
                } catch (error) {
                    showNotification('Error importing file: ' + error.message, 'error');
                }
+           };
+           reader.onerror = function() {
+               showNotification('Error reading file', 'error');
            };
            reader.readAsText(file);
        });
@@ -922,6 +920,7 @@
                document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
                localStorage.removeItem('behaviorProfile_draft');
                showNotification('Form cleared successfully');
+               updateProgress();
            }
        }
 
@@ -937,6 +936,7 @@
                    const data = JSON.parse(draft);
                    loadFormData(data);
                    showNotification('Draft loaded automatically');
+                   updateProgress();
                } catch (error) {
                    console.error('Error loading draft:', error);
                }
@@ -1014,7 +1014,7 @@
                        break;
                    case 'o':
                        e.preventDefault();
-                       document.getElementById('importFile').click();
+                       triggerImport();
                        break;
                }
            }
