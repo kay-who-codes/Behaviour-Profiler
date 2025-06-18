@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behavior Profiler - Behavioral Analysis Tool</title>
+    <style>
+        :root {
+            --bg-primary: #131313;
+            --bg-secondary: #1f1f1f;
+            --bg-tertiary: #2a2a2a;
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --accent-primary: #4dfe53;
+            --accent-secondary: #f1ff2e;
+            --border-color: #404040;
+            --shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px 0;
+            background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            min-width: 48px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .btn-secondary {
+            background: var(--accent-secondary);
+            color: var(--bg-primary);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .btn-primary:hover {
+            background: #3dd442;
+        }
+
+        .btn-secondary:hover {
+            background: #e6f526;
+        }
+
+        .btn-outline:hover {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .profile-form {
+            display: grid;
+            gap: 30px;
+        }
+
+        .section {
+            background: var(--bg-secondary);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+
+        .section h2 {
+            color: var(--accent-primary);
+            margin-bottom: 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+            min-height: 48px;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(77, 254, 83, 0.1);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            border-color: var(--accent-primary);
+            background: rgba(77, 254, 83, 0.05);
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+        }
+
+        .dropdown-with-notes {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dropdown-notes {
+            padding: 8px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .dropdown-notes:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--bg-tertiary);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .export-preview {
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .section {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.9rem;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: var(--transition);
+        }
+
+        .notification.success {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+        }
+
+        .notification.error {
+            background: #ff4444;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Behavior Profiler</h1>
+            <p class="subtitle">Professional Behavioral Analysis Tool</p>
+        </header>
+
+        <div class="controls">
+            <div class="file-input-wrapper">
+                <button class="btn btn-outline">
+                    📁 Import CSV
+                </button>
+                <input type="file" class="file-input" id="importFile" accept=".csv">
+            </div>
+            <button class="btn btn-secondary" onclick="exportToPDF()">📄 Export PDF</button>
+            <button class="btn btn-primary" onclick="exportToCSV()">📊 Export CSV</button>
+            <button class="btn btn-outline" onclick="clearForm()">🗑️ Clear All</button>
+        </div>
+
+        <form class="profile-form" id="behaviorForm">
+            <!-- Basic Information Section -->
+            <section class="section">
+                <h2>📋 Basic Information</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="subjectName">Subject Name</label>
+                        <input type="text" class="form-input" id="subjectName" placeholder="Enter subject name">
+                    </div>
+                    <div class="form-group">
+                        <label for="analystName">Analyst Name</label>
+                        <input type="text" class="form-input" id="analystName" placeholder="Enter analyst name">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionDate">Session Date</label>
+                        <input type="date" class="form-input" id="sessionDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionDuration">Session Duration (minutes)</label>
+                        <input type="number" class="form-input" id="sessionDuration" placeholder="60">
+                    </div>
+                    <div class="form-group">
+                        <label for="positiveAdjectives">Positive Adjectives</label>
+                        <textarea class="form-textarea" id="positiveAdjectives" placeholder="Confident, calm, articulate..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="negativeAdjectives">Negative Adjectives</label>
+                        <textarea class="form-textarea" id="negativeAdjectives" placeholder="Nervous, fidgety, evasive..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Eye Behaviors Section -->
+            <section class="section">
+                <h2>👁️ Eye Behaviors</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="baselineBlinkRate">Baseline Blink Rate</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="baselineBlinkRate">
+                                <option value="">Select rate</option>
+                                <option value="Fast">Fast</option>
+                                <option value="Average">Average</option>
+                                <option value="Slow">Slow</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="baselineBlinkRateNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="blinkRateChange">Change in Blink Rate</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="blinkRateChange">
+                                <option value="">Select change</option>
+                                <option value="Speed Up">Speed Up</option>
+                                <option value="Unchanged">Unchanged</option>
+                                <option value="Slow Down">Slow Down</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="blinkRateChangeNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="eyeContact">Eye Contact Pattern</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="eyeContact">
+                                <option value="">Select pattern</option>
+                                <option value="Direct">Direct</option>
+                                <option value="Avoidant">Avoidant</option>
+                                <option value="Intermittent">Intermittent</option>
+                                <option value="Staring">Staring</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="eyeContactNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pupilDilation">Pupil Dilation</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="pupilDilation">
+                                <option value="">Select observation</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Dilated">Dilated</option>
+                                <option value="Constricted">Constricted</option>
+                                <option value="Variable">Variable</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="pupilDilationNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Facial Expressions Section -->
+            <section class="section">
+                <h2>😊 Facial Expressions</h2>
+                <div class="checkbox-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="eyebrowRaise">
+                        <label for="eyebrowRaise">Eyebrow Raise</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="lipCompression">
+                        <label for="lipCompression">Lip Compression</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="lipPurse">
+                        <label for="lipPurse">Lip Purse</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="jawClench">
+                        <label for="jawClench">Jaw Clench</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="nostrilFlare">
+                        <label for="nostrilFlare">Nostril Flare</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="fakeSmile">
+                        <label for="fakeSmile">Fake Smile</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="genuineSmile">
+                        <label for="genuineSmile">Genuine Smile</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="microExpression">
+                        <label for="microExpression">Micro-expressions</label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="facialNotes">Facial Expression Notes</label>
+                    <textarea class="form-textarea" id="facialNotes" placeholder="Detailed observations about facial expressions..."></textarea>
+                </div>
+            </section>
+
+            <!-- Body Language Section -->
+            <section class="section">
+                <h2>🚶 Body Language</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="posture">Overall Posture</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="posture">
+                                <option value="">Select posture</option>
+                                <option value="Upright">Upright</option>
+                                <option value="Slouched">Slouched</option>
+                                <option value="Rigid">Rigid</option>
+                                <option value="Relaxed">Relaxed</option>
+                                <option value="Leaning Forward">Leaning Forward</option>
+                                <option value="Leaning Back">Leaning Back</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="postureNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="armPosition">Arm Position</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="armPosition">
+                                <option value="">Select position</option>
+                                <option value="Crossed">Crossed</option>
+                                <option value="Open">Open</option>
+                                <option value="On Table">On Table</option>
+                                <option value="Behind Back">Behind Back</option>
+                                <option value="Fidgeting">Fidgeting</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="armPositionNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                </div>
+                <div class="checkbox-group" style="margin-top: 20px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="footTapping">
+                        <label for="footTapping">Foot Tapping</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="legBouncing">
+                        <label for="legBouncing">Leg Bouncing</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="handGestures">
+                        <label for="handGestures">Excessive Hand Gestures</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="selfTouching">
+                        <label for="selfTouching">Self-touching/Grooming</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="objectManipulation">
+                        <label for="objectManipulation">Object Manipulation</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="barrierCreation">
+                        <label for="barrierCreation">Barrier Creation</label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="bodyLanguageNotes">Body Language Notes</label>
+                    <textarea class="form-textarea" id="bodyLanguageNotes" placeholder="Detailed observations about body language..."></textarea>
+                </div>
+            </section>
+
+            <!-- Voice & Speech Section -->
+            <section class="section">
+                <h2>🎤 Voice & Speech Patterns</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="speechRate">Speech Rate</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="speechRate">
+                                <option value="">Select rate</option>
+                                <option value="Fast">Fast</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Slow">Slow</option>
+                                <option value="Variable">Variable</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="speechRateNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="voiceVolume">Voice Volume</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="voiceVolume">
+                                <option value="">Select volume</option>
+                                <option value="Loud">Loud</option>
+                                <option value="Normal">Normal</option>
+                                <option value="Quiet">Quiet</option>
+                                <option value="Whisper">Whisper</option>
+                                <option value="Variable">Variable</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="voiceVolumeNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="voiceClarity">Voice Clarity</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="voiceClarity">
+                                <option value="">Select clarity</option>
+                                <option value="Clear">Clear</option>
+                                <option value="Mumbled">Mumbled</option>
+                                <option value="Stuttered">Stuttered</option>
+                                <option value="Slurred">Slurred</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="voiceClarityNotes" placeholder="Additional notes...">
+                        </div>
+                    </div>
+                </div>
+                <div class="checkbox-group" style="margin-top: 20px;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="voiceCracking">
+                        <label for="voiceCracking">Voice Cracking</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="fillerWords">
+                        <label for="fillerWords">Excessive Filler Words</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="longPauses">
+                        <label for="longPauses">Long Pauses</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="interruptions">
+                        <label for="interruptions">Frequent Interruptions</label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top: 20px;">
+                    <label for="speechNotes">Speech Pattern Notes</label>
+                    <textarea class="form-textarea" id="speechNotes" placeholder="Detailed observations about speech patterns..."></textarea>
+                </div>
+            </section>
+
+            <!-- Overall Assessment Section -->
+            <section class="section">
+                <h2>📊 Overall Assessment</h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="stressLevel">Perceived Stress Level</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="stressLevel">
+                                <option value="">Select level</option>
+                                <option value="Low">Low</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="High">High</option>
+                                <option value="Extreme">Extreme</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="stressLevelNotes" placeholder="Supporting observations...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="deceptionIndicators">Deception Indicators</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="deceptionIndicators">
+                                <option value="">Select assessment</option>
+                                <option value="None Detected">None Detected</option>
+                                <option value="Minimal">Minimal</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Significant">Significant</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="deceptionIndicatorsNotes" placeholder="Specific indicators observed...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="credibilityAssessment">Credibility Assessment</label>
+                        <div class="dropdown-with-notes">
+                            <select class="form-select" id="credibilityAssessment">
+                                <option value="">Select assessment</option>
+                                <option value="High">High</option>
+                                <option value="Moderate">Moderate</option>
+                                <option value="Low">Low</option>
+                                <option value="Questionable">Questionable</option>
+                            </select>
+                            <input type="text" class="dropdown-notes" id="credibilityAssessmentNotes" placeholder="Supporting rationale...">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="overallNotes">Overall Assessment Notes</label>
+                    <textarea class="form-textarea" id="overallNotes" placeholder="Comprehensive summary of behavioral observations and conclusions..." style="min-height: 120px;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="recommendations">Recommendations</label>
+                    <textarea class="form-textarea" id="recommendations" placeholder="Recommendations for follow-up actions or further analysis..." style="min-height: 100px;"></textarea>
+                </div>
+            </section>
+        </form>
+
+        <div class="progress-bar hidden" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Initialize form date with current date
+        document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
+
+        // Auto-save functionality
+        function autoSave() {
+            const formData = collectFormData();
+            localStorage.setItem('behaviorProfile_draft', JSON.stringify(formData));
+        }
+
+        // Collect all form data
+        function collectFormData() {
+            const form = document.getElementById('behaviorForm');
+            const formData = {};
+            
+            // Text inputs and textareas
+            const textInputs = form.querySelectorAll('input[type="text"], input[type="date"], input[type="number"], textarea, select');
+            textInputs.forEach(input => {
+                formData[input.id] = input.value;
+            });
+            
+            // Checkboxes
+            const checkboxes = form.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                formData[checkbox.id] = checkbox.checked;
+            });
+            
+            return formData;
+        }
+
+        // Load form data
+        function loadFormData(data) {
+            Object.keys(data).forEach(key => {
+                const element = document.getElementById(key);
+                if (element) {
+                    if (element.type === 'checkbox') {
+                        element.checked = data[key];
+                    } else {
+                        element.value = data[key];
+                    }
+                }
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Export to CSV
+        function exportToCSV() {
+            const data = collectFormData();
+            const csv = convertToCSV(data);
+            downloadFile(csv, 'behavior-profile.csv', 'text/csv');
+            showNotification('Profile exported to CSV successfully!');
+        }
+
+        // Convert data to CSV format
+        function convertToCSV(data) {
+            const headers = ['Field', 'Value'];
+            const rows = [headers.join(',')];
+            
+            Object.keys(data).forEach(key => {
+                const value = typeof data[key] === 'boolean' ? (data[key] ? 'Yes' : 'No') : data[key];
+                const cleanValue = String(value).replace(/"/g, '""');
+                rows.push(`"${key}","${cleanValue}"`);
+            });
+            
+            return rows.join('\n');
+        }
+
+        // Export to PDF (simplified version - in a real implementation, you'd use a library like jsPDF)
+        function exportToPDF() {
+            const data = collectFormData();
+            const htmlContent = generatePDFContent(data);
+            
+            // Create a new window for printing
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Behavior Profile Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+                        h1 { color: #4dfe53; border-bottom: 2px solid #4dfe53; padding-bottom: 10px; }
+                        h2 { color: #333; margin-top: 30px; }
+                        .section { margin-bottom: 25px; }
+                        .field { margin: 10px 0; }
+                        .label { font-weight: bold; color: #555; }
+                        .value { margin-left: 10px; }
+                        .checkbox-yes { color: #4dfe53; font-weight: bold; }
+                        .checkbox-no { color: #999; }
+                       @media print {
+                           body { margin: 20px; }
+                           .no-print { display: none; }
+                       }
+                   </style>
+               </head>
+               <body>
+                   ${htmlContent}
+                   <div class="no-print" style="margin-top: 30px; text-align: center;">
+                       <button onclick="window.print()" style="padding: 10px 20px; background: #4dfe53; border: none; border-radius: 5px; cursor: pointer;">Print/Save as PDF</button>
+                       <button onclick="window.close()" style="padding: 10px 20px; background: #ccc; border: none; border-radius: 5px; cursor: pointer; margin-left: 10px;">Close</button>
+                   </div>
+               </body>
+               </html>
+           `);
+           printWindow.document.close();
+           showNotification('PDF preview opened in new window');
+       }
+
+       // Generate PDF content
+       function generatePDFContent(data) {
+           const sections = {
+               'Basic Information': ['subjectName', 'analystName', 'sessionDate', 'sessionDuration', 'positiveAdjectives', 'negativeAdjectives'],
+               'Eye Behaviors': ['baselineBlinkRate', 'baselineBlinkRateNotes', 'blinkRateChange', 'blinkRateChangeNotes', 'eyeContact', 'eyeContactNotes', 'pupilDilation', 'pupilDilationNotes'],
+               'Facial Expressions': ['eyebrowRaise', 'lipCompression', 'lipPurse', 'jawClench', 'nostrilFlare', 'fakeSmile', 'genuineSmile', 'microExpression', 'facialNotes'],
+               'Body Language': ['posture', 'postureNotes', 'armPosition', 'armPositionNotes', 'footTapping', 'legBouncing', 'handGestures', 'selfTouching', 'objectManipulation', 'barrierCreation', 'bodyLanguageNotes'],
+               'Voice & Speech': ['speechRate', 'speechRateNotes', 'voiceVolume', 'voiceVolumeNotes', 'voiceClarity', 'voiceClarityNotes', 'voiceCracking', 'fillerWords', 'longPauses', 'interruptions', 'speechNotes'],
+               'Overall Assessment': ['stressLevel', 'stressLevelNotes', 'deceptionIndicators', 'deceptionIndicatorsNotes', 'credibilityAssessment', 'credibilityAssessmentNotes', 'overallNotes', 'recommendations']
+           };
+
+           let html = '<h1>Behavior Profile Report</h1>';
+           html += `<p><strong>Generated:</strong> ${new Date().toLocaleString()}</p>`;
+
+           Object.keys(sections).forEach(sectionName => {
+               html += `<div class="section"><h2>${sectionName}</h2>`;
+               sections[sectionName].forEach(fieldId => {
+                   const element = document.getElementById(fieldId);
+                   if (element && data[fieldId]) {
+                       const label = element.previousElementSibling ? element.previousElementSibling.textContent : fieldId;
+                       let value = data[fieldId];
+                       
+                       if (typeof value === 'boolean') {
+                           value = `<span class="checkbox-${value ? 'yes' : 'no'}">${value ? 'Yes' : 'No'}</span>`;
+                       }
+                       
+                       html += `<div class="field"><span class="label">${label}:</span><span class="value">${value}</span></div>`;
+                   }
+               });
+               html += '</div>';
+           });
+
+           return html;
+       }
+
+       // Download file utility
+       function downloadFile(content, filename, contentType) {
+           const blob = new Blob([content], { type: contentType });
+           const url = URL.createObjectURL(blob);
+           const link = document.createElement('a');
+           link.href = url;
+           link.download = filename;
+           document.body.appendChild(link);
+           link.click();
+           document.body.removeChild(link);
+           URL.revokeObjectURL(url);
+       }
+
+       // Import CSV file
+       document.getElementById('importFile').addEventListener('change', function(e) {
+           const file = e.target.files[0];
+           if (!file) return;
+
+           if (!file.name.toLowerCase().endsWith('.csv')) {
+               showNotification('Please select a CSV file', 'error');
+               return;
+           }
+
+           const reader = new FileReader();
+           reader.onload = function(e) {
+               try {
+                   const csv = e.target.result;
+                   const data = parseCSV(csv);
+                   loadFormData(data);
+                   showNotification('Profile imported successfully!');
+               } catch (error) {
+                   showNotification('Error importing file: ' + error.message, 'error');
+               }
+           };
+           reader.readAsText(file);
+       });
+
+       // Parse CSV content
+       function parseCSV(csv) {
+           const lines = csv.split('\n');
+           const data = {};
+           
+           for (let i = 1; i < lines.length; i++) {
+               const line = lines[i].trim();
+               if (line) {
+                   const matches = line.match(/^"([^"]*(?:""[^"]*)*)","([^"]*(?:""[^"]*)*)"$/);
+                   if (matches) {
+                       const key = matches[1].replace(/""/g, '"');
+                       let value = matches[2].replace(/""/g, '"');
+                       
+                       // Convert boolean strings back to booleans
+                       if (value === 'Yes') value = true;
+                       else if (value === 'No') value = false;
+                       
+                       data[key] = value;
+                   }
+               }
+           }
+           
+           return data;
+       }
+
+       // Clear form
+       function clearForm() {
+           if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+               document.getElementById('behaviorForm').reset();
+               document.getElementById('sessionDate').value = new Date().toISOString().split('T')[0];
+               localStorage.removeItem('behaviorProfile_draft');
+               showNotification('Form cleared successfully');
+           }
+       }
+
+       // Auto-save on input changes
+       document.getElementById('behaviorForm').addEventListener('input', autoSave);
+       document.getElementById('behaviorForm').addEventListener('change', autoSave);
+
+       // Load draft on page load
+       window.addEventListener('load', function() {
+           const draft = localStorage.getItem('behaviorProfile_draft');
+           if (draft) {
+               try {
+                   const data = JSON.parse(draft);
+                   loadFormData(data);
+                   showNotification('Draft loaded automatically');
+               } catch (error) {
+                   console.error('Error loading draft:', error);
+               }
+           }
+       });
+
+       // Smooth scroll for long forms
+       document.querySelectorAll('input, textarea, select').forEach(element => {
+           element.addEventListener('focus', function() {
+               setTimeout(() => {
+                   this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+               }, 100);
+           });
+       });
+
+       // Form validation feedback
+       document.querySelectorAll('input[required], textarea[required], select[required]').forEach(element => {
+           element.addEventListener('invalid', function() {
+               this.style.borderColor = '#ff4444';
+               showNotification('Please fill in all required fields', 'error');
+           });
+           
+           element.addEventListener('input', function() {
+               if (this.validity.valid) {
+                   this.style.borderColor = '';
+               }
+           });
+       });
+
+       // Progress tracking
+       function updateProgress() {
+           const formElements = document.querySelectorAll('#behaviorForm input, #behaviorForm textarea, #behaviorForm select');
+           let filled = 0;
+           let total = 0;
+
+           formElements.forEach(element => {
+               total++;
+               if (element.type === 'checkbox') {
+                   if (element.checked) filled++;
+               } else if (element.value.trim() !== '') {
+                   filled++;
+               }
+           });
+
+           const percentage = total > 0 ? (filled / total) * 100 : 0;
+           const progressBar = document.getElementById('progressBar');
+           const progressFill = document.getElementById('progressFill');
+           
+           if (percentage > 0) {
+               progressBar.classList.remove('hidden');
+               progressFill.style.width = percentage + '%';
+           } else {
+               progressBar.classList.add('hidden');
+           }
+       }
+
+       // Update progress on form changes
+       document.getElementById('behaviorForm').addEventListener('input', updateProgress);
+       document.getElementById('behaviorForm').addEventListener('change', updateProgress);
+
+       // Initialize progress
+       updateProgress();
+
+       // Keyboard shortcuts
+       document.addEventListener('keydown', function(e) {
+           if (e.ctrlKey || e.metaKey) {
+               switch(e.key) {
+                   case 's':
+                       e.preventDefault();
+                       exportToCSV();
+                       break;
+                   case 'p':
+                       e.preventDefault();
+                       exportToPDF();
+                       break;
+                   case 'o':
+                       e.preventDefault();
+                       document.getElementById('importFile').click();
+                       break;
+               }
+           }
+       });
+
+       // Touch-friendly enhancements for mobile
+       if ('ontouchstart' in window) {
+           document.querySelectorAll('.checkbox-item').forEach(item => {
+               item.addEventListener('touchstart', function() {
+                   this.style.transform = 'scale(0.98)';
+               });
+               
+               item.addEventListener('touchend', function() {
+                   this.style.transform = '';
+               });
+           });
+       }
+
+       // Enhanced dropdown functionality
+       document.querySelectorAll('.form-select').forEach(select => {
+           select.addEventListener('change', function() {
+               const notesInput = this.parentElement.querySelector('.dropdown-notes');
+               if (notesInput) {
+                   if (this.value) {
+                       notesInput.style.display = 'block';
+                       notesInput.focus();
+                   } else {
+                       notesInput.style.display = 'none';
+                       notesInput.value = '';
+                   }
+               }
+           });
+
+           // Initialize notes visibility
+           const notesInput = select.parentElement.querySelector('.dropdown-notes');
+           if (notesInput && !select.value) {
+               notesInput.style.display = 'none';
+           }
+       });
+
+       // Checkbox click handler for better UX
+       document.querySelectorAll('.checkbox-item').forEach(item => {
+           item.addEventListener('click', function(e) {
+               if (e.target.type !== 'checkbox') {
+                   const checkbox = this.querySelector('input[type="checkbox"]');
+                   checkbox.checked = !checkbox.checked;
+                   checkbox.dispatchEvent(new Event('change'));
+                   autoSave();
+               }
+           });
+       });
+
+       // Word count for text areas
+       document.querySelectorAll('textarea').forEach(textarea => {
+           const updateWordCount = () => {
+               const words = textarea.value.trim().split(/\s+/).filter(word => word.length > 0).length;
+               let counter = textarea.parentElement.querySelector('.word-count');
+               
+               if (!counter) {
+                   counter = document.createElement('div');
+                   counter.className = 'word-count';
+                   counter.style.cssText = 'font-size: 0.8rem; color: var(--text-muted); text-align: right; margin-top: 4px;';
+                   textarea.parentElement.appendChild(counter);
+               }
+               
+               counter.textContent = `${words} word${words !== 1 ? 's' : ''}`;
+           };
+
+           textarea.addEventListener('input', updateWordCount);
+           updateWordCount();
+       });
+
+       // Enhanced error handling for file operations
+       window.addEventListener('error', function(e) {
+           console.error('Application error:', e.error);
+           showNotification('An unexpected error occurred. Please try again.', 'error');
+       });
+
+       // Prevent accidental page refresh
+       window.addEventListener('beforeunload', function(e) {
+           const formData = collectFormData();
+           const hasData = Object.values(formData).some(value => 
+               (typeof value === 'string' && value.trim() !== '') || 
+               (typeof value === 'boolean' && value === true)
+           );
+           
+           if (hasData) {
+               e.preventDefault();
+               e.returnValue = '';
+           }
+       });
+
+       console.log('Behavior Profiler initialized successfully');
+   </script>
+</body>
+</html>
